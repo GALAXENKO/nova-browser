@@ -53,15 +53,15 @@
 | Файл | Платформа | Размер | Описание |
 |---|---|---|---|
 | `NovaBrowser-Setup-1.0.0.exe` | Windows x64 | ~59 МБ | Установщик (NSIS): ярлыки, меню «Пуск», удаление |
-| `Nova Browser.exe` | Windows x64 | ~63 МБ | Портативная версия, не требует установки |
+| `NovaBrowser-1.0.0-portable.exe` | Windows x64 | ~63 МБ | Портативная версия, не требует установки |
 | `NovaBrowser-1.0.0.apk` | Android 6.0+ | ~0,13 МБ | APK для телефона |
 
 SHA-256:
 
 ```
-NovaBrowser-Setup-1.0.0.exe  C66F4B10C96BC0BEC724EED0CCD4E575AF82F78F91D03C2CA605388FB805139F
-Nova Browser.exe             A41C572071C4542A5E98BB8A89CC2D0A5110BB3B7EF6959B6C233334B598340B
-NovaBrowser-1.0.0.apk        C925062396DDBBC1D57BC790F9D143E21ED161E3164F5A7792AFA9C2BBD0BC9C
+NovaBrowser-Setup-1.0.0.exe     C66F4B10C96BC0BEC724EED0CCD4E575AF82F78F91D03C2CA605388FB805139F
+NovaBrowser-1.0.0-portable.exe  A41C572071C4542A5E98BB8A89CC2D0A5110BB3B7EF6959B6C233334B598340B
+NovaBrowser-1.0.0.apk           C925062396DDBBC1D57BC790F9D143E21ED161E3164F5A7792AFA9C2BBD0BC9C
 ```
 
 ---
@@ -79,7 +79,7 @@ NovaBrowser-1.0.0.apk        C925062396DDBBC1D57BC790F9D143E21ED161E3164F5A7792A
 
 **Портативная версия**
 
-1. Скачайте `Nova Browser.exe` в любую папку.
+1. Скачайте `NovaBrowser-1.0.0-portable.exe` в любую папку.
 2. Запустите — установка не требуется.
 
 Для работы нужен компонент **Microsoft Edge WebView2 Runtime**. В Windows 11 он уже

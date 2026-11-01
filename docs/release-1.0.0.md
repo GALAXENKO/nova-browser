@@ -30,13 +30,13 @@
 | Файл | Платформа | Размер | SHA-256 |
 |---|---|---|---|
 | `NovaBrowser-Setup-1.0.0.exe` | Windows x64, установщик | 61 820 971 Б | `C66F4B10C96BC0BEC724EED0CCD4E575AF82F78F91D03C2CA605388FB805139F` |
-| `Nova Browser.exe` | Windows x64, портативная | 66 427 129 Б | `A41C572071C4542A5E98BB8A89CC2D0A5110BB3B7EF6959B6C233334B598340B` |
+| `NovaBrowser-1.0.0-portable.exe` | Windows x64, портативная | 66 427 129 Б | `A41C572071C4542A5E98BB8A89CC2D0A5110BB3B7EF6959B6C233334B598340B` |
 | `NovaBrowser-1.0.0.apk` | Android 6.0+ | 129 482 Б | `C925062396DDBBC1D57BC790F9D143E21ED161E3164F5A7792AFA9C2BBD0BC9C` |
 
 ## Установка
 
 **Windows.** Запустите `NovaBrowser-Setup-1.0.0.exe` либо просто откройте
-`Nova Browser.exe`. Файлы не подписаны сертификатом разработчика, поэтому SmartScreen
+`NovaBrowser-1.0.0-portable.exe`. Файлы не подписаны сертификатом разработчика, поэтому SmartScreen
 может показать предупреждение — «Подробнее» → «Выполнить в любом случае».
 Для Windows 10 может потребоваться Microsoft Edge WebView2 Runtime (установщик
 предложит скачать его).
