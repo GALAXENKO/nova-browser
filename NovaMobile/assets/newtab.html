@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src 'self' data:;">
+<title>Новая вкладка — Nova Browser</title>
+<style>
+  :root {
+    --bg: #f4f7ff;
+    --bg2: #e9efff;
+    --card: rgba(255, 255, 255, .86);
+    --card-solid: #ffffff;
+    --text: #111827;
+    --muted: #667085;
+    --line: #dde4f2;
+    --accent: #5b6cff;
+    --accent2: #8b5cf6;
+    --soft: rgba(91, 108, 255, .09);
+    --shadow: 0 22px 60px rgba(38, 57, 120, .13);
+    --shadow-soft: 0 10px 30px rgba(38, 57, 120, .08);
+    --tile: #eef2ff;
+  }
+
+  body.dark {
+    --bg: #0b1122;
+    --bg2: #101a33;
+    --card: rgba(20, 28, 49, .78);
+    --card-solid: #141c31;
+    --text: #f4f7ff;
+    --muted: #aeb9d4;
+    --line: rgba(255, 255, 255, .11);
+    --accent: #7f9aff;
+    --accent2: #b388ff;
+    --soft: rgba(127, 154, 255, .12);
+    --shadow: 0 24px 70px rgba(0, 0, 0, .38);
+    --shadow-soft: 0 12px 34px rgba(0, 0, 0, .25);
+    --tile: rgba(127, 154, 255, .12);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", Roboto, system-ui, -apple-system, sans-serif;
+    overflow-x: hidden;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: -3;
+    background:
+      radial-gradient(circle at 16% 8%, rgba(79, 125, 255, .24), transparent 38%),
+      radial-gradient(circle at 88% 18%, rgba(168, 85, 247, .19), transparent 34%),
+      radial-gradient(circle at 50% 108%, rgba(45, 212, 191, .12), transparent 45%),
+      linear-gradient(155deg, var(--bg) 0%, var(--bg2) 56%, var(--bg) 100%);
+  }
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(70px);
+    opacity: .32;
+    z-index: -2;
+    pointer-events: none;
+    animation: drift 16s ease-in-out infinite alternate;
+  }
+  .orb.one { width: 320px; height: 320px; left: -120px; top: -110px; background: conic-gradient(from 140deg, #4f7dff, #a855f7, #22d3ee, #4f7dff); }
+  .orb.two { width: 260px; height: 260px; right: -100px; bottom: 8%; background: conic-gradient(from 20deg, #8b5cf6, #3b82f6, #2dd4bf, #8b5cf6); animation-delay: -6s; opacity: .2; }
+
+  @keyframes drift { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(24px, 18px, 0) scale(1.08); } }
+  @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  .shell {
+    width: min(780px, 100%);
+    margin: 0 auto;
+    padding: calc(20px + env(safe-area-inset-top)) 18px 30px;
+  }
+
+  .topbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+  .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+  .brand img { width: 42px; height: 42px; border-radius: 13px; box-shadow: 0 8px 22px rgba(79, 91, 255, .26); }
+  .brand-name { font-size: 17px; font-weight: 750; letter-spacing: -.3px; }
+  .brand-sub { margin-top: 2px; font-size: 9.5px; font-weight: 700; letter-spacing: 1.5px; color: var(--muted); }
+  .icon-btn {
+    width: 42px; height: 42px; flex: none; display: grid; place-items: center;
+    border: 1px solid var(--line); border-radius: 14px;
+    background: var(--card); color: var(--text); box-shadow: var(--shadow-soft);
+    backdrop-filter: blur(14px); cursor: pointer;
+  }
+  .icon-btn:active { transform: scale(.96); }
+  .icon-btn svg { width: 21px; height: 21px; }
+
+  .hero { margin-top: 34px; animation: rise .55s cubic-bezier(.2, .8, .2, 1) both; }
+  .greeting { font-size: 13px; font-weight: 650; color: var(--accent); letter-spacing: .2px; }
+  .clock { margin-top: 4px; font-size: clamp(46px, 13vw, 68px); line-height: .98; font-weight: 760; letter-spacing: -2.8px; font-variant-numeric: tabular-nums; }
+  .date { margin-top: 8px; font-size: 12px; font-weight: 600; letter-spacing: .8px; color: var(--muted); text-transform: uppercase; }
+
+  .search {
+    display: flex; align-items: center; gap: 10px;
+    height: 58px; margin-top: 26px; padding: 0 7px 0 18px;
+    border: 1px solid var(--line); border-radius: 19px;
+    background: var(--card); box-shadow: var(--shadow); backdrop-filter: blur(18px);
+    transition: border-color .2s, box-shadow .2s, transform .2s;
+  }
+  .search:focus-within { border-color: color-mix(in srgb, var(--accent) 65%, transparent); box-shadow: 0 22px 65px rgba(91, 108, 255, .22); transform: translateY(-1px); }
+  .search .lens { width: 21px; height: 21px; flex: none; color: var(--muted); }
+  .search input {
+    flex: 1; min-width: 0; height: 100%; border: 0; outline: 0;
+    background: transparent; color: var(--text); font: 500 16px/1 "Segoe UI", Roboto, system-ui, sans-serif;
+  }
+  .search input::placeholder { color: var(--muted); opacity: .82; }
+  .search button {
+    width: 44px; height: 44px; flex: none; display: grid; place-items: center;
+    border: 0; border-radius: 14px; color: #fff; cursor: pointer;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    box-shadow: 0 7px 18px rgba(91, 108, 255, .32);
+  }
+  .search button svg { width: 20px; height: 20px; }
+  .search-meta { margin: 10px 4px 0; display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); }
+  .search-meta strong { color: var(--text); font-weight: 650; }
+
+  .section { margin-top: 31px; animation: rise .55s .08s cubic-bezier(.2, .8, .2, 1) both; }
+  .section-head { display: flex; align-items: center; justify-content: space-between; margin: 0 3px 13px; }
+  .section-title { font-size: 12px; font-weight: 750; letter-spacing: 1.15px; color: var(--muted); text-transform: uppercase; }
+  .section-link { font-size: 12px; font-weight: 650; color: var(--accent); text-decoration: none; }
+  .shortcuts { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+  .shortcut {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    text-decoration: none; color: var(--text); min-width: 0;
+  }
+  .shortcut .tile {
+    width: 52px; height: 52px; display: grid; place-items: center; border-radius: 16px;
+    background: var(--tile); border: 1px solid var(--line); box-shadow: var(--shadow-soft);
+    font-weight: 800; font-size: 18px; transition: transform .18s;
+  }
+  .shortcut:active .tile { transform: scale(.93); }
+  .shortcut .label { font-size: 11.5px; font-weight: 600; color: var(--muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .shortcut .tile svg { width: 24px; height: 24px; }
+
+  .bookmarks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .bookmark {
+    display: flex; align-items: center; gap: 11px; min-width: 0; padding: 12px;
+    border: 1px solid var(--line); border-radius: 15px; background: var(--card);
+    box-shadow: var(--shadow-soft); text-decoration: none; color: var(--text);
+    backdrop-filter: blur(14px);
+  }
+  .bookmark:active { transform: scale(.985); }
+  .bookmark .mark {
+    width: 36px; height: 36px; flex: none; display: grid; place-items: center; border-radius: 11px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff;
+    font-size: 15px; font-weight: 800; box-shadow: 0 5px 14px rgba(91, 108, 255, .24);
+  }
+  .bookmark .copy { min-width: 0; }
+  .bookmark .title { font-size: 12.5px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bookmark .host { margin-top: 3px; font-size: 10.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .empty {
+    display: flex; align-items: center; gap: 11px; padding: 15px;
+    border: 1px dashed var(--line); border-radius: 15px; color: var(--muted);
+    font-size: 12px; line-height: 1.45; background: var(--soft);
+  }
+  .empty svg { width: 21px; height: 21px; flex: none; color: var(--accent); }
+
+  .quick-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+  .quick-nav a {
+    display: inline-flex; align-items: center; gap: 7px; padding: 9px 13px;
+    border: 1px solid var(--line); border-radius: 999px; background: var(--card);
+    color: var(--muted); font-size: 11.5px; font-weight: 600; text-decoration: none;
+    box-shadow: var(--shadow-soft);
+  }
+  .quick-nav a:active { color: var(--text); border-color: var(--accent); }
+  .quick-nav svg { width: 15px; height: 15px; }
+
+  .footer { margin-top: 26px; display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 10.5px; }
+  .footer .nova { color: var(--accent); font-weight: 700; }
+  .footer .version { opacity: .7; }
+
+  @media (max-width: 600px) {
+    .shell { padding-left: 16px; padding-right: 16px; }
+    .hero { margin-top: 28px; }
+    .shortcuts { grid-template-columns: repeat(3, 1fr); gap: 16px 10px; }
+    .bookmarks { grid-template-columns: 1fr; }
+    .search { height: 56px; border-radius: 18px; }
+  }
+  @media (max-width: 380px) {
+    .brand img { width: 38px; height: 38px; }
+    .brand-name { font-size: 15px; }
+    .clock { letter-spacing: -2px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="backdrop"></div>
+<div class="orb one"></div>
+<div class="orb two"></div>
+
+<main class="shell">
+  <header class="topbar">
+    <div class="brand">
+      <img src="nova_logo.png" alt="Nova">
+      <div>
+        <div class="brand-name">Nova Browser</div>
+        <div class="brand-sub">MOBILE</div>
+      </div>
+    </div>
+    <button class="icon-btn" id="settingsBtn" aria-label="Настройки" title="Настройки">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+    </button>
+  </header>
+
+  <section class="hero">
+    <div class="greeting" id="greeting">Добрый день</div>
+    <div class="clock" id="clock">12:00</div>
+    <div class="date" id="date">Понедельник, 1 января</div>
+
+    <form class="search" id="searchForm" autocomplete="off">
+      <svg class="lens" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.8-3.8"></path></svg>
+      <input id="query" type="search" enterkeyhint="search" placeholder="Поиск или адрес сайта" aria-label="Поиск или адрес сайта">
+      <button type="submit" aria-label="Искать">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg>
+      </button>
+    </form>
+    <div class="search-meta">Поиск в <strong id="engine">Google</strong><span>·</span><span>или введите адрес</span></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><div class="section-title">Быстрый доступ</div></div>
+    <div class="shortcuts">
+      <a class="shortcut" href="https://www.google.com">
+        <span class="tile" style="background:linear-gradient(135deg,#4285f4,#2b6de0);border-color:transparent;color:#fff">G</span>
+        <span class="label">Google</span>
+      </a>
+      <a class="shortcut" href="https://www.youtube.com">
+        <span class="tile" style="background:linear-gradient(135deg,#ff3347,#e0002b);border-color:transparent;color:#fff">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"></path></svg>
+        </span>
+        <span class="label">YouTube</span>
+      </a>
+      <a class="shortcut" href="https://ru.wikipedia.org">
+        <span class="tile" style="background:linear-gradient(135deg,#f8fafc,#e5e7eb);border-color:transparent;color:#111827;font-family:Georgia,serif">W</span>
+        <span class="label">Википедия</span>
+      </a>
+      <a class="shortcut" href="https://github.com">
+        <span class="tile" style="background:linear-gradient(135deg,#24292f,#111418);border-color:transparent;color:#fff;font-size:12px">&lt;/&gt;</span>
+        <span class="label">GitHub</span>
+      </a>
+      <a class="shortcut" href="https://t.me">
+        <span class="tile" style="background:linear-gradient(135deg,#2aabee,#229ed9);border-color:transparent;color:#fff">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.8 4.6 18.6 20c-.2 1.1-.9 1.4-1.8.9l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.4-5.1L18 6.5c.4-.4-.1-.6-.6-.2L6.6 13.1 1.7 11.5c-1.1-.3-1.1-1.1.2-1.6L20.3 2.7c.9-.3 1.7.2 1.5 1.9z"></path></svg>
+        </span>
+        <span class="label">Telegram</span>
+      </a>
+      <a class="shortcut" href="https://www.reddit.com">
+        <span class="tile" style="background:linear-gradient(135deg,#ff5722,#ff4500);border-color:transparent;color:#fff">r</span>
+        <span class="label">Reddit</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="section" id="bookmarksSection">
+    <div class="section-head">
+      <div class="section-title">Закладки</div>
+      <a class="section-link" href="#" id="allBookmarks">Все закладки</a>
+    </div>
+    <div class="bookmarks" id="bookmarks"></div>
+  </section>
+
+  <nav class="quick-nav">
+    <a href="#" id="historyLink">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l3 2"></path></svg>
+      История
+    </a>
+    <a href="#" id="downloadsLink">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg>
+      Загрузки
+    </a>
+    <a href="#" id="bookmarksLink">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-2.9-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z"></path></svg>
+      Закладки
+    </a>
+    <a href="#" id="settingsLink">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+      Настройки
+    </a>
+  </nav>
+
+  <footer class="footer">
+    <span><span class="nova">Nova Browser</span> · быстрый, приватный, ваш</span>
+    <span class="version">v1.0</span>
+  </footer>
+</main>
+
+<script>
+(function () {
+  var params = new URLSearchParams(location.search);
+  var forced = params.get('theme');
+  var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if (forced === 'dark' || (forced !== 'light' && prefersDark)) document.body.classList.add('dark');
+
+  function bridge(name, fallback) {
+    try {
+      if (window.Nova && typeof Nova[name] === 'function') return Nova[name]();
+    } catch (e) {}
+    return fallback;
+  }
+
+  function openSettings() {
+    if (window.Nova && Nova.openSettings) Nova.openSettings();
+    else location.href = 'nova://settings';
+  }
+  function openHistory() {
+    if (window.Nova && Nova.openHistory) Nova.openHistory();
+    else location.href = 'nova://history';
+  }
+  function openDownloads() {
+    if (window.Nova && Nova.openDownloads) Nova.openDownloads();
+    else location.href = 'nova://downloads';
+  }
+  function openBookmarks() {
+    if (window.Nova && Nova.openBookmarks) Nova.openBookmarks();
+    else location.href = 'nova://bookmarks';
+  }
+
+  var clock = document.getElementById('clock');
+  var date = document.getElementById('date');
+  var greeting = document.getElementById('greeting');
+  var days = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'];
+  var months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+
+  function tick() {
+    var now = new Date();
+    var h = String(now.getHours()).padStart(2, '0');
+    var m = String(now.getMinutes()).padStart(2, '0');
+    clock.textContent = h + ':' + m;
+    var day = days[now.getDay()];
+    date.textContent = day.charAt(0).toUpperCase() + day.slice(1) + ', ' + now.getDate() + ' ' + months[now.getMonth()];
+    var hour = now.getHours();
+    var text = 'Доброй ночи';
+    if (hour >= 5 && hour < 12) text = 'Доброе утро';
+    else if (hour >= 12 && hour < 18) text = 'Добрый день';
+    else if (hour >= 18 && hour < 23) text = 'Добрый вечер';
+    greeting.textContent = text;
+  }
+  tick();
+  setInterval(tick, 15000);
+
+  var engine = bridge('getSearchEngine', 'Google');
+  document.getElementById('engine').textContent = engine;
+
+  document.getElementById('searchForm').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var query = document.getElementById('query').value.trim();
+    if (!query) return;
+    if (window.Nova && Nova.search) Nova.search(query);
+    else location.href = 'https://www.google.com/search?q=' + encodeURIComponent(query);
+  });
+
+  document.getElementById('settingsBtn').addEventListener('click', openSettings);
+  document.getElementById('settingsLink').addEventListener('click', function (e) { e.preventDefault(); openSettings(); });
+  document.getElementById('historyLink').addEventListener('click', function (e) { e.preventDefault(); openHistory(); });
+  document.getElementById('downloadsLink').addEventListener('click', function (e) { e.preventDefault(); openDownloads(); });
+  document.getElementById('bookmarksLink').addEventListener('click', function (e) { e.preventDefault(); openBookmarks(); });
+  document.getElementById('allBookmarks').addEventListener('click', function (e) { e.preventDefault(); openBookmarks(); });
+
+  function hostOf(url) {
+    try { return new URL(url).hostname.replace(/^www\./, ''); } catch (e) { return url; }
+  }
+
+  function renderBookmarks() {
+    var box = document.getElementById('bookmarks');
+    var list = [];
+    try { list = JSON.parse(bridge('getBookmarks', '[]')) || []; } catch (e) { list = []; }
+    box.textContent = '';
+    if (!list.length) {
+      var empty = document.createElement('div');
+      empty.className = 'empty';
+      empty.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-2.9-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z"></path></svg><span>Здесь появятся сохранённые страницы. Откройте меню ⋮ и нажмите «В закладки».</span>';
+      box.appendChild(empty);
+      return;
+    }
+    list.slice(0, 6).forEach(function (item) {
+      var a = document.createElement('a');
+      a.className = 'bookmark';
+      a.href = item.url || '#';
+      var mark = document.createElement('span');
+      mark.className = 'mark';
+      mark.textContent = (item.title || hostOf(item.url || '?')).trim().charAt(0).toUpperCase();
+      var copy = document.createElement('span');
+      copy.className = 'copy';
+      var title = document.createElement('span');
+      title.className = 'title';
+      title.textContent = item.title || hostOf(item.url || '');
+      var host = document.createElement('span');
+      host.className = 'host';
+      host.textContent = hostOf(item.url || '');
+      copy.appendChild(title);
+      copy.appendChild(host);
+      a.appendChild(mark);
+      a.appendChild(copy);
+      box.appendChild(a);
+    });
+  }
+  renderBookmarks();
+})();
+</script>
+</body>
+</html>

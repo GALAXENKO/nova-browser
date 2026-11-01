@@ -1,0 +1,31 @@
+# --- .NET / WPF ---
+bin/
+obj/
+*.user
+*.suo
+.vs/
+publish/
+
+# --- Android build output ---
+NovaMobile/build/
+NovaMobile/build/gen/
+NovaMobile/build/classes/
+NovaMobile/build/dex/
+*.apk
+*.aab
+
+# --- Local release staging (uploaded as GitHub Release assets) ---
+dist/
+
+# --- Installer output ---
+installer/Output/
+installer/assets/MicrosoftEdgeWebview2Setup.exe
+
+# --- OS / editor ---
+Thumbs.db
+desktop.ini
+.DS_Store
+*.log
+
+# Unrelated local file
+calculator.py
